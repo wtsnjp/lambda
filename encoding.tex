@@ -1,0 +1,63 @@
+%!uplatex
+\documentclass[uplatex,dvipdfmx,report,fleqn]{jsbook}
+
+\input{settings}
+\DeclareSub[2]
+
+\begin{document}
+
+\chapter{ラムダ計算の表現能力}
+
+\begin{abstract}
+前章で導入したラムダ計算には，変数・関数抽象・関数適用というたった3つのプリミティブしか
+存在しない．しかし，これらをうまく用いることにより，真偽値や自然数といった基本的なデータ型
+をラムダ計算上の関数として表現することができる．
+\end{abstract}
+
+\section{チャーチ・エンコーディング}
+
+種々の基本データをラムダ計算上で表現する方法は幾通りも存在しているが，ここでは
+チャーチ・エンコーディングと呼ばれる方法について考える．この表現方法の基本的な
+考え方は，真偽値や自然数は有限個の構成子で表現することができるので，各値を
+そうした構成子を受け取って表現したい値に対応するラムダ項を返す関数として定義する
+ことである．
+
+\subsection{チャーチ真理値}
+
+真偽値の集合には$\func{true}$と$\func{false}$の2つの要素が含まれる．真偽値は，基本的には
+何らかの決定を行うために存在し，2つの選択肢のうちの一方を選ぶときに使うものといえる．
+そこで，関数$\func{true}$は2つの構成子を受け取って最初の1つを返すもの，すなわち
+\[
+\func{true} \defeq \fab*{tf}{t}
+\]
+と定義できる．逆に，$\func{false}$は2つの構成子を受け取って後の1つを返すもの
+\[
+\func{false} \defeq \fab*{tf}{f}
+\]
+として定義される．これらの関数は\emph{チャーチ真理値}と呼ばれ，例えば
+if $p$ then $e_1$ else $e_2$のような形のif文は$\fab*{pe_1e_2}{pe_1e_2}$と表現できる．
+%
+\begin{example}
+if $\func{true}$ then $e_1$ else $e_2$を表すラムダ項のベータ簡約列は次のようになる：
+\[
+\fab{pe_1e_2}{pe_1e_2}\fab{tf}{t}e_1e_2 \breds \fab{tf}{t}e_1e_2 \bred e_1.
+\]
+\end{example}
+
+チャーチ真理値とそのif文があれば論理演算子を表現できるが，各演算子は
+%
+\begin{align*}
+\func{and} &\defeq \fab*{p_1p_2}{p_1p_2\,\func{false}} \\
+\func{or} &\defeq \fab*{p_1p_2}{p_1\,\func{true}\,p_2} \\
+\func{not} &\defeq \fab*{p}{p\,\func{false}\;\func{true}}
+\end{align*}
+%
+のように直接表現することも可能である．
+
+\subsection{チャーチ数}
+
+
+
+\NeedsRevision
+
+\end{document}

@@ -1,0 +1,575 @@
+%!uplatex
+\documentclass[uplatex,dvipdfmx,report,fleqn]{jsbook}
+
+\input{settings}
+\DeclareSub[1]
+
+\begin{document}
+
+\chapter{ラムダ計算の基本}
+
+\begin{abstract}
+ラムダ計算とは，わずかな式変形規則によって「計算」という行為を抽象化したチューリング完全な
+計算モデルの1つで，関数型プログラミング言語のエッセンスとも言えるものである．本章では
+このラムダ計算の基本事項について概観する．
+\end{abstract}
+
+\section{ラムダ記法}
+
+\subsection{1変数関数}
+
+数学において，$x^2+2y+1$のような表現は様々な意味で使用される．1つの解釈は，これを「関数」の
+表現と捉えるものである．その場合，この表現はさらに$x$の関数を表す可能性，$y$の関数を表す
+可能性，$x,y$の2変数関数を表す可能性などが考えられる．一方，$x^2+2y+1$は$x,y$に特定の数を
+代入したときの「値」を表しているという見方もできる．
+
+このような表現の多義性を避けるため，$x^2+2y+1$が$x$に関する1変数関数$f_y:\nset\to\nset$を表す
+とき，自然数$x$を$x^2+2y+1$に対応させる関数という意味で$\fab*{x\in\nset}{x^2+2y+1}$のように
+表記する．つまり，一般に1変数関数$g:X\to Y$が適当な式$A$を用いて$g(x)=A$の形に表せるとき，
+この関数$g$を$\fab*{x\in X}{A}$で表す．このような表記法は\emph{ラムダ記法}と
+呼ばれる．
+
+ラムダ記法は，通常の自然数関数などを表すときよりも，高階関数（関数の関数）を表現する
+ときにその真価を発揮する．いま集合$X$から集合$Y$への関数全体の集合を
+$(X\to Y)=\set{f\mid f:X\to Y}$のように表すことにする．このとき集合$(\nset\to\nset)$から
+$(\nset\to\nset)$への高階関数$\func{twice}$を
+\[
+\func{twice}(f) \defeq \fab*{x\in\nset}{f(f(x))} \quad (\forall f\in(\nset\to\nset))
+\]
+のように定義する．すなわち，$\func{twice}$は任意の$f\in(\nset\to\nset)$に対して，
+$f$を2回適用する関数$\fab*{x\in\nset}{f(f(x))}\in(\nset\to\nset)$を対応させる関数である．
+そして，この高階関数$\func{twice}$自身は，ラムダ記法を用いて
+$\fab*{f\in(\nset\to\nset)}{\fab{x\in\nset}{f(f(x))}}$のように表現できる．
+
+\subsection{多変数関数}
+
+さて，ここまではラムダ記法によって表す関数を1変数関数に絞っていたが，この考え方は多変数関数
+にも拡張することができる．このとき，多変数関数のためのラムダ記法を新たに導入することも
+できるが，高階関数を用いれば1変数のラムダ記法だけでも多変数関数について記述することが
+可能である．再び$x^2+2y+1$の例を用いて，このことを説明する．この式を$y$に関する1変数関数
+$f_x:\nset\to\nset$とみなせば，ラムダ記法により$\fab*{y\in\nset}{x^2+2y+1}$と書ける．いま，
+さらに自然数$x$と$y$に関する1変数関数$f:\nset\to\nset$の対応関係を表す関数
+$f^*:\nset\to(\nset\to\nset)$を考えると
+\[
+f^* \defeq \fab*{x\in\nset}{\fab{y\in\nset}{x^2+2y+1}}
+\]
+のように表現できる．ここで2変数関数$f(x,y)=x^2+2y+1$と$f^*$の関係を考えると，例えば
+%
+\begin{align*}
+&f^*(2) = \fab*{y\in\nset}{f(2,y)} \\
+&f^*(2)(3) = f(2,3)
+\end{align*}
+%
+となり，任意の自然数$x,y$について$f^*(x)(y)=f(x,y)$が成り立つ．この議論はどのような多変数関数
+にも適用することができる．つまり，任意の$n$変数関数$f:X_1\times X_2\times\cdots\times X_n\to X$
+に対して
+$f^* \defeq \fab*{x_1\in X_1}{\fab*{x_2\in X_2}{\cdots\fab*{x_n\in X_n}{f(x_1,x_2,\dots,x_n)}}}$
+とすると\footnote{ある関数$f$をこのような関数$f^*$の形に表すことをアメリカの数学者
+Haskell Curryに因んでカリー化という．}，高階関数$f^*$と$f$の間には
+\[
+f^*(x_1)(x_2)\dots(x_n) = f(x_1,x_2,\dots,x_n)
+\]
+の関係が成り立つ．上式の両辺は引数の形こそ異なるが，いずれも与えられた$x_1,x_2,\dots,x_n$に
+対して同じ値を対応させる関数である．したがって，この$f^*$と$f$を同一視すれば任意の多変数関数
+が1変数のラムダ記法を用いて表せることになる．
+
+\section{ラムダ計算の導入}
+
+\subsection{ラムダ項}
+
+ラムダ計算の議論をはじめる前に，ラムダ記法の導入動機とその意味について説明した．しかし，
+ここでは一旦そのセマンティクス（意味論）に関わる事項は脇に措き，ラムダ計算の体系で用いられる
+文法を形式的に示すことにする．
+%
+\begin{definition}[ラムダ項]
+変数の集合$V$が与えられているとする（$V$は可算無限集合）．\emph{ラムダ項}を
+次のように再帰的に定義する．
+%
+\begin{enumerate}
+\item 変数はラムダ項である．
+\item $M$と$N$がラムダ項のとき，$\fap{MN}$はラムダ項である．
+\item $x$が変数で$M$がラムダ項のとき$\fab{x}{M}$はラムダ項である．
+%\item 以上により得られるものだけがラムダ項である．
+\end{enumerate}
+\end{definition}
+%
+ここで$\fap{MN}$の形のラムダ項のことを\emph{関数適用}と呼び，$\fab{x}{M}$の形のラムダ項の
+ことを\emph{関数抽象}という．これらの言葉を用いれば，ラムダ項とは，変数に関数抽象と関数適用を
+繰り返し行うことによって得られるものと言うことができ，ラムダ項$M$を構成していく過程で得られる
+ラムダ項は$M$の\emph{部分項}と呼ばれる\footnote{$M$中に現れる各変数や$M$自身も
+$M$の部分項という．}．なお，本章では以降特に断りがない限り$a,b,\dots$などイタリック体の
+英小文字で変数を表し，$A,B,\dots$などイタリック体の英大文字でラムダ項を表すことにする．
+%
+\begin{example}\exlabel{ラムダ項}
+次の9つの表記はすべてラムダ項である：
+%
+\begin{align*}
+&x,\eqsep \fap{xy},\eqsep \fap{\fap{xx}y},\eqsep \fap{x\fap{yz}},\eqsep \fab{x}{x},\eqsep
+\fab{y}{\fap{xx}},\eqsep \fab{x}{\fab{y}{\fab{z}{\fap{xy}}}},\eqsep \fap{x\fab{x}{y}},\\
+&\fab{a}{\fap{\fap{\fab{x}{\fab{y}{\fap{\fap{xy}y}}}g}\fap{\fab{u}{\fap{ab}}f}}}.
+\end{align*}
+\end{example}
+
+上記の例からもわかるように，ラムダ項は一般に括弧が多く（人間にとっては）読みにくいものである
+ので，本書では次のような省略表記を認めることにする\footnote{文献によっては$\fab{x}{\fap{MN}}$
+の括弧を省略した$\fab{x}{MN}$という表記（関数抽象より関数適用の方が結びつきが強い）など
+さらにいくつかの省略規則を許容している場合もある．}．
+%
+\begin{itemize}
+\item 一番外側の括弧は省略する．
+\item 連続した関数適用$\fap{\cdots\fap{\fap{\fap{M_1M_2}M_3}\cdots}M_n}$は
+$M_1M_2M_3\cdots M_4$のように書く．
+\item 連続した関数抽象$\fab{x_1}{\fab{x_2}{(\cdots\fab{x_n}{M}\cdots)}}$は
+$\fab*{x_1x_2x_3\cdots x_n}{M}$のように書く．
+\end{itemize}
+%
+ここで，連続した関数適用の場合は左から，連続した関数抽象の場合は右から括弧を補う必要がある点に
+注意すること．
+%
+\begin{example}
+先の\exref{ラムダ項}で示した9つのラムダ項は，次のように省略表記できる：
+%
+\begin{align*}
+&x,\eqsep xy,\eqsep xxy,\eqsep x\fap{yz},\eqsep \fab*{x}{x},
+\fab*{y}{\fap{xx}},\eqsep \fab*{xyz}{\fap{xy}},\eqsep x\fab{x}{y},\\
+&\fab*{a}{\fap{\fap{\fab*{xy}{\fap{xyy}}}g\fap{\fab{u}{\fap{ab}}f}}}.
+\end{align*}
+\end{example}
+
+\subsection{代入とアルファ変換}
+
+ラムダ項の定義の中に「変数」という言葉が出てきたが，一般に変数にはいくつか種類がある．
+\linebreak 例えば，定積分を含む式
+%
+\begin{equation}
+x + \int^5_0 x^2\dc{x} \eqlabel{定積分を含む例}
+\end{equation}
+%
+には$x$が2度現れるが，これらの変数の意味は互いに異なる．2つ目の$x$は一種の局所変数のような
+もので，束縛子$dx$に束縛されていることから束縛変数と呼ばれる．一方，最初の$x$は
+束縛子による束縛を受けない自由変数である．
+
+ラムダ計算の体系においてにも，このような変数の区別が存在する．
+%
+\begin{definition}[束縛出現，自由出現]
+ラムダ項の中で，記号$\lambda$により指示されている変数の出現のことを
+\emph{束縛出現}と呼び，それ以外の変数の出現のことを
+\emph{自由出現}という．
+\end{definition}
+%
+本書では以降，束縛出現する変数を\emph{束縛変数}，自由出現する変数を
+\emph{自由変数}と呼ぶことにする．
+%
+\begin{example}
+ラムダ項$\fab{xy}{\fap{axy}}x$において，$y$は束縛変数，$a$は自由変数である．また，
+3度出現する変数$x$のうち，左側の2つは束縛出現，最右のものは自由出現である．
+\end{example}
+
+ところで，先ほどの式\eqref{定積分を含む例}は
+\[
+x + \int^5_0 r^2\dc{r}
+\]
+のように書いてもその意味は完全に同一である（一方で残った自由変数$x$を別のものに書き換える
+と場合によっては意味が変化する点に注意されたい）．同様に，ラムダ項で束縛出現する変数は
+これを別の変数で置き換えてもそれが表している内容は変わらない．このように束縛出現する変数の
+置換を繰り返し行うことをアルファ変換という．
+
+ここではアルファ変換を形式的に定義するためにラムダ項における代入を定義しよう．すなわち
+ラムダ項$M$中で自由出現する変数$x$をラムダ項$N$で置き換えることによって得られるラムダ項
+$M[N/x]$を考える．
+
+しかし，上記のような置換操作を無制限に行うと，時としてある大きな問題を生じることがある．
+例えば，ラムダ項$M=\fab*{x}{xy}$の部分項$y$をラムダ項$N=\fap{xy}$で置き換えるとき，これを
+安直に実行すると$\fab*{x}{x\fap{xy}}$となるが，これでは$N$中で自由変数であった変数$x$が
+置換後には束縛変数となってしまっている．これは明らかに$N$中の自由変数$x$と$M$中の束縛変数
+$x$の名前が\emph{衝突}していたことに原因がある．したがって$M[N/y]$を考える
+場合には予め$M$中の束縛変数を別の文字に変更し，$\fab*{z}{zy}$のように変形してから$y$の
+置換操作を行っておかなければならない．このように，衝突を生じる状況で代入を行う場合には，
+置換を行う前に，代入を受ける項の束縛変数を衝突を起こさない別の変数に変えておく必要がある．
+
+このことを考慮した上で，ラムダ項に対する代入操作を以下のように定義する．
+%
+\begin{definition}[ラムダ項に対する代入]
+ラムダ項$N,M$と変数$x$に対し，ラムダ項$M[N/x]$は次のように定義される．
+%
+\begin{enumerate}
+\item $x[N/x] = N$
+\item $y[N/x] = y$
+\item $\fap{PQ}[N/x] = \fap{P[N/x]}\fap{Q[N/x]}$
+\item $\fab{x}{P}[N/x] = \fab*{x}{P}$
+\item $\fab{y}{P}[N/x] = \fab*{y}{\fap{P[N/x]}}$（変数が衝突しないとき）
+\item $\fab{y}{P}[N/x] = \fab*{z}{\fap{\fap{P[z/y]}[N/x]}}$（変数が衝突するとき）
+\end{enumerate}
+%
+なお，$y$は$x$とは異なる変数とし，$z$は$P$にも$N$にも現れないような変数とする．
+\end{definition}
+%
+\begin{example}
+ラムダ項$\fab*{y}{yx}$中の変数$x$に対して，ラムダ項$yu$を代入すると次のようになる：
+%
+\begin{align*}
+\fab{y}{yx}[yu/x] &= \fab*{z}{\fap{\fap{\fap{yx}[z/y]}[yu/x]}} \\
+&= \fab*{z}{\fap{\fap{zx}[yu/x]}} \\
+&= \fab*{z}{z\fap{yu}}.
+\end{align*}
+\end{example}
+
+さて，以上により代入の定義行うことができたので，「束縛変数の名前替え」にあたるアルファ変換
+と呼ばれる操作の形式的な定義を導入する．
+%
+\begin{definition}[アルファ変換]
+ラムダ項$P$からその部分項の1つ$\fab*{x}{M}$を$\fab*{y}{M[y/x]}$で置き換えたラムダ項$P'$
+を作る操作を\emph{アルファ変換}と呼ぶ．ただし$y$は$M$中で自由出現しない変数
+とする．
+\end{definition}
+
+ここでラムダ項$P,Q$が何回かのアルファ変換により互いに到達できる場合，これらは
+\emph{アルファ同値である}といい，$P\aequiv Q$のように
+表記する．
+%
+\begin{example}
+$a,b,x,y$を互いに異なる変数とする．このとき，以下が成り立つ：
+%
+\begin{align*}
+&x\aequiv x,\eqsep x\not\aequiv y,\\
+&\fab{xy}{\fap{xy}}\fab{ab}{\fap{ba}}
+\aequiv\fab{ab}{\fap{ab}}\fab{ab}{\fap{ba}}
+\aequiv\fab{xy}{\fap{xy}}\fab{xy}{\fap{yx}},\\
+&\fab*{x}{\fap{\fab{a}{a}x}}\aequiv\fab*{y}{\fap{\fab{y}{y}y}},\eqsep
+\fab*{x}{\fap{\fab*{a}{\fap{ax}}}}\not\aequiv\fab*{y}{\fap{\fab*{y}{\fap{yy}}}}.
+\end{align*}
+\end{example}
+
+2つのラムダ項が$M\aequiv N$であるとき，既に述べたように$M$と$N$は束縛出現する変数名が
+異なるだけで，項としての機能や構造に違いはない．そこで，以降本書では原則としてアルファ同値な
+項を同一視して扱うことにする\footnote{より厳密には，表記$M$は「ラムダ項$M$を代表元とする
+アルファ同値類」を表すと考えてもらいたい．}．
+
+\subsection{ベータ簡約}
+
+ラムダ計算において「計算」の機構そのものを担う重要な規則がベータ簡約である．ただし
+ラムダ計算の体系は関数の概念しかもたないので，計算といっても「関数に引数を与えると，
+その結果の値となる」という形のものだけである．
+%
+\begin{definition}[ベータ簡約]
+ラムダ項$P$からその部分項$\fab{x}{M}N$を$M[N/x]$で置き換えたラムダ項$P'$を作る操作を
+\emph{ベータ簡約}といい，これを$P\bred P'$と表す．
+\end{definition}
+%
+なお，あるラムダ項中において$M[N/x]$への置換を行うことができる$\fab{x}{M}N$の形をした
+部分項のことを\emph{ベータ基}という．
+%
+\begin{example}\exlabel{ベータ簡約}
+$x,y,z,w,v$はすべて異なる変数とする．以下にベータ簡約の例を示す：
+%
+\begin{align*}
+\fab{y}{yuw}\fab{xz}{z\fap{xx}} &\bred \fab{xz}{z\fap{xx}}uw\\
+&\bred \fab{z}{z\fap{uu}}w\\
+&\bred w\fap{uu}.
+\end{align*}
+\end{example}
+%
+\begin{definition}[ベータ変換]
+ラムダ項$P$からアルファ変換およびベータ簡約を有限回繰り返すことによりラムダ項$Q$が得られる
+とき，すなわち
+\[
+P \aequiv P_1 \bred P_2 \bred \cdots \bred P_n \aequiv Q \quad (n \geq 1)
+\]
+を満たすラムダ項$P_1,P_2,\dots,P_n$が存在するとき，これを$P\breds Q$のように書き，$Q$は
+$P$から\emph{ベータ変換により得られる}と表現する．
+\end{definition}
+%
+上記定義中の列$P_1,P_2,\dots,P_n$は\emph{ベータ変換列}と呼ばれる．
+また，相互にベータ変換可能なラムダ項を同一視することによって得られるラムダ項間の同値関係を
+$\beq$で表す場合がある：
+\[
+P\breds Q \text{かつ} Q\breds P \defiff P \beq Q.
+\]
+
+\exref{ベータ簡約}より$\fab{y}{yuw}\fab{xz}{z\fap{xx}}\breds w\fap{uu}$がわかるが，
+$w\fap{uu}$はこれ以上ベータ簡約を行うことができない．このように，それ以上ベータ簡約を
+行うことのできない（つまり，ベータ基を持たない）ラムダ項を\textbf{正規な}ラムダ項という．
+%
+\begin{definition}[ベータ正規形]
+$M\breds N$で$N$が正規であるとき，$N$を$M$の\emph{ベータ正規形}という．
+\end{definition}
+
+\subsection{いくつかの有名なラムダ項}
+
+ここでは，いくつかの有名なラムダ項を用いてラムダ計算体系についての理解を深めることにする．
+
+\subsubsection{SKIコンビネータ}
+
+まずはじめに，以下に示す3つの比較的単純な形をしたラムダ項について考える：
+%
+\begin{equation}\eqlabel{ラムダ項IKS}
+I \defeq \fab*{x}{x},\eqsep
+K \defeq \fab*{xy}{x},\eqsep
+S \defeq \fab*{xyz}{xz\fap{yz}}.
+\end{equation}
+%
+これらのラムダ項と一般のラムダ項$M,N,P,Q$では
+%
+\begin{align*}
+IM &= \fab{x}{x}M \bred M,\\
+KMN &= \fab{xy}{x}MN \bred M,\\
+SPQR &= \fab{xyz}{xz\fap{yz}}PQR \breds PR\fap{QR},\\
+S\fab{x}{M}\fab{x}{N} &\breds \fab*{z}{\fab{x}{M}z\fap{\fab{x}{N}z}}
+\breds \fab*{z}{M[x/z]N[x/z]} = \fab*{x}{MN}
+\end{align*}
+%
+が成り立つことは簡単にわかる．また，$S,K$と$I$の間には
+%
+\begin{equation}
+SKK \breds \fab*{z}{Kz\fap{Ka}} \bred \fab*{z}{z} \aequiv I \eqlabel{SKI関係式}
+\end{equation}
+%
+という関係もある．さらに「任意のラムダ項は変数と$S,K$の関数適用のみから構成されるラムダ項に
+ベータ変換可能である（任意のラムダ項は$S$と$K$で表現できる）」という性質がある
+\footnote{したがってラムダ項を$S,K,I$に限定しても（型なし）ラムダ計算と同等の計算能力を
+もつ計算モデルとして扱うことができ，これをSKIコンビネータ計算という．}
+．
+%
+\begin{definition}[SK式]
+SK式を次のように再帰的に定義する．
+%
+\begin{enumerate}
+\item 変数と$S,K$はそれぞれSK式である．
+\item $X_1$と$X_2$がSK式のとき，$\fap{X_1X_2}$はSK式である．
+%\item 以上により得られるものだけがSK式である．
+\end{enumerate}
+\end{definition}
+%
+\begin{theorem}
+任意のラムダ項$M$に対してSK式$X$が存在して$X\breds M$が成り立つ．
+\end{theorem}
+%
+\begin{proof}
+%% 局所マクロ
+\newcommand{\skl}[1]{\mathit{\Lambda}x\!\centerdot\!#1}
+%% 証明本体
+SK式$X$と変数$x$に対して$\skl{X}$を再帰的に
+\[
+\skl{X} \defeq 
+\begin{cases}
+SKK & \text{$X=x$のとき} \\
+KX & \text{$X$が$x$以外の変数か$S$または$K$のとき} \\
+S\fap{\skl{X_1}}\fap{\skl{X_2}} & \text{$X_1,X_2$が$X\aequiv X_1X_2$を満たすSK式のとき}
+\end{cases}
+\]
+と定義する．このとき$\skl{X}$は変数と$S,K$の関数適用のみから構成されるSK式である．
+
+以下$\skl{X}$をベータ簡約することを考える．
+%
+\begin{proofcases}
+\item $X=x$のとき，式\eqref{SKI関係式}より$\skl{x} = SKK \breds \fab*{x}{x}$．
+%
+\item $X=K$のとき，
+$\skl{K} = KK = \fab{xy}{x}\fab{xy}{x} \breds \fab*{x}{\fab{xy}{x}} = \fab*{x}{K}$．
+%
+\item $X=S$のとき，
+$\skl{S} = KS = \fab{xy}{x}\fab{xyz}{xz\fap{yz}} \breds
+\fab*{x}{\fab{xyz}{xz\fap{yz}}} = \fab*{x}{S}$．
+%
+\item それ以外の場合，$X_1,X_2$を$X\aequiv X_1X_2$を満たすSK式として，上記の結果も利用して
+%
+\begin{align*}
+\skl{X}
+&= S\fap{\skl{X_1}}\fap{\skl{X_2}} = \fab{xyz}{xz\fap{yz}}\fap{\skl{X_1}}\fap{\skl{X_2}} \\
+&\bred \fab*{x}{\fap{\fap{\skl{X_1}}x\fap{\fap{\skl{X_2}}x}}}
+\breds \fab*{x}{X_1X_2} \aequiv \fab*{x}{X}.
+\end{align*}
+\end{proofcases}
+%
+したがって，任意のSK式$X$について$\skl{X}\breds\fab*{x}{X}$が成り立つことがわかる．
+
+ここで，あるラムダ項$M$中に現れる$\lambda$をすべて$\mathit{\Lambda}$に置き換えれば
+$X\breds M$なるSK式$X$を得ることができる．よって題意は示された．\qed
+\end{proof}
+
+\subsubsection{無限のベータ簡約列}
+
+次に，ラムダ項
+%
+\begin{equation}\eqlabel{ラムダ項Omega}
+\Omega \defeq \fab{x}{xx}\fab{x}{xx}
+\end{equation}
+%
+をベータ簡約することを考えると
+\[
+\Omega = \fab{x}{xx}\fab{x}{xx} \bred \fab{x}{xx}\fab{x}{xx}
+\]
+となり，ベータ簡約前とベータ簡約後の形が同じになる．これを別の書き方で表せば$\Omega\bred\Omega$
+であり，\linebreak ラムダ項$\Omega$には正規形が存在しないことがわかる．このように，正規形を
+もたない関数の計算は永久に停止せず，したがってその関数の値は定義することができない．
+
+\subsubsection{不動点演算子}
+
+$X\breds MX$を満たす$X$を$M$の\emph{不動点}というが，任意のラムダ項に対してこの
+ような不動点を作り出す特殊なラムダ項（不動点演算子）がいくつか知られている
+\footnote{$Y$はカリーの不動点演算子，$Y'$はチューリングの不動点演算子とそれぞれ呼ばれている．}：
+%
+\begin{equation}\eqlabel{不動点演算子}
+Y  \defeq \fab*{y}{\fab{x}{y\fap{xx}}\fab{x}{y\fap{xx}}},\eqsep
+Y' \defeq \fab{xy}{y\fap{xxy}}\fab{xy}{y\fap{xxy}}.
+\end{equation}
+%
+$F$を一般のラムダ項とし，ラムダ項$YF$および$Y'F$のベータ変換を考えると
+%
+\begin{align*}
+YF &= \fab{y}{\fab{x}{y\fap{xx}}\fab{x}{y\fap{xx}}}F \\
+&\bred \fab{x}{F\fap{xx}}\fab{x}{F\fap{xx}} \\
+&\bred F\fap{\fab{x}{F\fap{xx}}\fab{x}{F\fap{xx}}} \\
+Y'F &= \fap{\fab{xy}{y\fap{xxy}}\fab{xy}{y\fap{xxy}}}F \\
+&\bred \fab{y}{y\fap{\fab{xy}{y\fap{xxy}}\fab{xy}{y\fap{xxy}}y}}F \\
+&\bred F\fap{\fap{\fab{xy}{y\fap{xxy}}\fab{xy}{y\fap{xxy}}}F}
+\end{align*}
+%
+となる．すなわち
+\[
+YF\breds F\fap{YF},\eqsep Y'F\breds F\fap{Y'F}
+\]
+が成り立ち，それぞれ$YF, Y'F$が不動点となっていることがわかる．
+
+以降，本書では$I,S,K,\Omega,Y,Y'$を断りなく式\eqref{ラムダ項IKS, ラムダ項Omega, 不動点演算子}
+で定義した意味で用いることにする．
+
+\subsection{イータ変換}
+
+等しい引数を与えたときに等しい結果を返す関数は「等しい関数」とみなすことができる．
+つまり，任意の$x$について$f(x)=g(x)$が成り立つとき，そしてそのときに限り$f=g$が成り立つ．
+この性質は\emph{外延性の原理}と呼ばれており，これに対応するラムダ計算上の概念に
+イータ変換がある．
+
+\begin{definition}[イータ簡約]
+$M$を自由変数$x$を含まないラムダ項とすると，$\fab*{x}{Mx} \bred M$が常に成り立つ．
+そこで，ラムダ項$P$の部分項$\fab*{x}{Mx}$を$M$に置き換えたラムダ項$P'$を作る操作を
+\emph{イータ簡約}といい，$P\ered P'$のように書く．
+\end{definition}
+%
+イータ簡約とは逆に$M$を$\fab*{x}{Mx}$に置き換えたラムダ項を作る操作は\emph{イータ展開}と
+呼ばれ，これらの操作を合わせて\emph{イータ変換}と呼ぶ．ラムダ項$P, Q$が有限回のイータ変換に
+より互いに到達できる場合，これらは\emph{イータ同値である}といい，$P\eequiv Q$のように表す．
+
+\section{チャーチ・ロッサーの定理と正規化定理}
+
+\subsection{チャーチ・ロッサーの定理}
+
+ラムダ項$M$の中に複数のベータ基が含まれている場合，そのいずれに注目するかによって何通りかの
+ベータ簡約を行える可能性がある．例えば，$\fab{x}{xx}\fap{\fab{y}{y}z}$は
+%
+\begin{align}
+\fab{x}{xx}\underline{\fap{\fab{y}{y}z}} &\bred \fab{x}{xx}z = M_1 \eqlabel{M1} \\
+\underline{\fab{x}{xx}\fap{\fab{y}{y}z}} &\bred \fap{\fab{y}{y}z}\fap{\fab{y}{y}z} = M_2
+\eqlabel{M2}
+\end{align}
+%
+の2通りに簡約できる．上記2式では，左辺の注目したベータ基に下線を引いている．ここでベータ簡約
+の結果にまたいくつかのベータ基がある場合，そのうちのいずれか1つを選んで簡約するということを
+次々に続けていくと，1つのラムダ項から幾通りもの変換列ができる場合がある．
+%その際
+%\[
+%\fab{x}{a}\Omega \bred \fab{x}{a}\Omega \bred \fab{x}{a}\Omega \bred \cdots
+%\]
+%のようにベータ簡約が新しいベータ基を生み，それをベータ簡約すると再び新しいベータ基が
+%生まれるという状況がいつまでも続く場合が考えられ，ベータ変換列は必ずしも有限で終わる
+%とは限らない．
+
+そこで，このように1つのラムダ項から始まる様々な変換列がいずれ1つのラムダ項に
+収束するのか，あるいは互いに無関係なラムダ項へと発散していくのか，つまり計算の順序は
+計算結果に違いを与えるのか否かという疑問が生じる．本節で導くことになるチャーチ・ロッサーの
+定理は，この問題に対して「計算の順序は計算結果に影響を与えない」という肯定的解答を与える
+ものである．
+
+まず，一般のラムダ項に関する二項関係$\tox$について合流性という概念を導入する．なお，$\tox$を
+有限回繰り返して到達できることを$\toxs$と書く．
+%
+\begin{definition}[合流性]
+任意のラムダ項$M,P,Q$について
+\[
+M \tox P \land M \tox Q \then \exists N.(P \tox N \land Q \tox N)
+\]
+が成り立つとき，二項関係$\tox$は\emph{1ステップ合流性}をもつ
+という．また
+\[
+M \toxs P \land M \toxs Q \then \exists N.(P \toxs N \land Q \toxs N)
+\]
+が成り立つとき，二項関係$\tox$は\emph{複数ステップ合流性}をもつという．
+\end{definition}
+%
+\begin{lemma}\thlabel{合流性}
+二項関係$\tox$が1ステップ合流性をもつならば，$\tox$は複数ステップ合流性をもつ．
+\end{lemma}
+%
+\begin{proof}
+二項関係$\tox$が1ステップ合流性をもつとき，その合流状況を$M\toxs P, M\toxs Q$の変換列をもとに
+\figref{合流状況}のように格子状に表現することができる．したがって$P \toxs N, Q \toxs N$
+を満たす$N$が存在し，$\tox$は複数ステップ合流性をもつ．\qed
+\end{proof}
+%
+\begin{figure}[b]
+\centering
+\imgsource{confluence}
+\caption{1ステップ合流性が成り立つ場合の合流状況}
+\figlabel{合流状況}
+\end{figure}
+
+補題\thref{合流性}の逆は成り立たない．実際，本節冒頭で示した式\eqref{M1, M2}について
+$M_i\bred N\;(i=1,2)$なるラムダ項$N$は存在しない．この事実はベータ簡約の複数ステップ
+合流性を主張するチャーチ・ロッサーの定理の証明を難しくする．そのためチャーチ・ロッサーの定理
+を示すにはいくつか新しいアイデアが必要となる．
+%
+\begin{enumerate}
+\item ラムダ項間に新たな二項関係$\pred$を導入する．
+\item $\pred$と$\bred$は複数ステップでは同等になることを示す．
+%\[
+%M \preds N \iff M \breds N
+%\]
+\item $\pred$の1ステップ合流性を示す．
+\end{enumerate}
+%
+ここで，二項関係$\pred$はあるラムダ項中に存在するすべてのベータ基を1回の操作で同時に
+簡約してしまうというベータ簡約の拡張概念であり，形式的には次のように定義される．
+%
+\begin{definition}[並行簡約]
+以下を満たすラムダ項間の二項関係$\pred$を\emph{並行簡約}という．
+%
+\begin{enumerate}
+\item $a$が変数のとき$a\pred a$である．
+\item $A\pred B$かつ$C\pred D$ならば$AC\pred BD$である．
+\item $A\pred B$かつ$C\pred D$ならば$\fab{a}{A}C\pred B[D/a]$である．
+\item $A\pred B$ならば$\fab*{a}{A}\pred$である．
+%\item 以上に該当しなければ$M\pred N$ではない．
+\end{enumerate}
+\end{definition}
+%
+ここで上記定義内の規則は，\figref{並行簡約}に示す4つの推論規則として記述することもできる．
+%
+\begin{figure}
+\centering
+\begin{minipage}{.35\textwidth}
+\centering
+\imgsource{parallel1}
+\end{minipage}
+\begin{minipage}{.35\textwidth}
+\centering
+\imgsource{parallel2}
+\end{minipage}
+%
+\\
+%
+\begin{minipage}{.35\textwidth}
+\centering
+\imgsource{parallel3}
+\end{minipage}
+\begin{minipage}{.35\textwidth}
+\centering
+\imgsource{parallel4}
+\end{minipage}
+\caption{並行簡約の規則}
+\figlabel{並行簡約}
+\end{figure}
+
+\NeedsRevision
+
+\end{document}

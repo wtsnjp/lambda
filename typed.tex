@@ -1,0 +1,128 @@
+%!uplatex
+\documentclass[uplatex,dvipdfmx,report,fleqn]{jsbook}
+
+\input{settings}
+\DeclareSub[3]
+
+\begin{document}
+
+\chapter{型つきラムダ計算}
+
+\begin{abstract}
+一般の数学で関数を考える際には，通常その定義域と値域を考慮する必要がある．例えば$f$が
+集合$A$から$B$への関数（もしくは写像）であるとき$f: A\to B$のように表され$f(a)$のように
+値が定まるのは$a\in A$を満たす場合に限られる．一方，これまで議論してきた（型なし）ラムダ計算
+では無条件に$ff$のような表記が許されていた．本章では，このような表現が実際的に意味を
+もつためにはどのような制限を加えればよいかを考えていく．
+\end{abstract}
+
+\section{型の導入}
+
+はじめに「$f$が集合$A$から$B$への写像である」ということに対応するものとして
+「$f$は型$A\to B$をもつ」というような概念を導入することにする．また「$a$が集合$A$の元である」
+ということに対応するものとして「$a$は型$A$をもつ」ということにする．その上で，$f$の型が
+$A\to B$で$a$の型が$A$のときに限り$\fap{fa}$が定義され，$\fap{fa}$は型$B$をもつと考える．
+さらに，型$A$をもつ任意の$a$について$\fap{ga}$が型$B$をもつとき，$\fab{x}{\fap{gx}}$は
+型$A\to B$をもつと考えられる．以上を整理すると，型および型つきラムダ項を定義することができる．
+%
+\begin{definition}[型]
+\emph{型}は次のように再帰的に定義される．
+%
+\begin{enumerate}
+\item 型変数$a,b,c,\dots$は型である．
+\item $A$と$B$が型のとき，$(A\to B)$は型である．
+%\item 以上により得られるものだけが型である．
+\end{enumerate}
+\end{definition}
+%
+なお，上の定義において混乱が生じない限り括弧は省略してもよいことにする．特に
+$(A_1\to(A_2\to\cdots\to(A_n\to B)\cdots))$を$A_1\to A_2\to\cdots\to A_n\to B$と略す．
+%
+\begin{definition}[型つきラムダ項]
+\emph{型つきラムダ項}とその型は次のように再帰的に定義される．
+%
+\begin{enumerate}
+\item 型$X$をもつ変数はすべて型つきラムダ項であり，その型は$X$である．
+\item $x$が型$A$をもつ変数で$M$が型$B$をもつ型つきラムダ項のとき$\fab{x}{M}$は
+型つきラムダ項であり，その型は$A\to B$である．
+\item $M$が型$A\to B$をもつ型つきラムダ項で$N$が型$A$をもつ型つきラムダ項のとき
+$\fap{MN}$は型つきラムダ項で，その型は$B$である．
+%\item 以上により得られるものだけが型つきラムダ項である．
+\end{enumerate}
+\end{definition}
+
+以降，本書では型つきラムダ項$M$が型$\tau$をもつとき，このことを$M:\tau$のように表すことにする．
+
+\section{型判定}
+
+入力に対して何らかの性質が成立するかどうかをYESかNOで判定する問題を判定問題という．また
+判定問題を有限時間で解くアルゴリズムが存在する場合，その問題は
+\emph{決定可能である}という．
+
+型つきラムダ計算のように型のある計算体系に対しては，以下のような判定問題を解くことが
+重要である．ここで$\Gamma$は$x_1:\sigma_1, x_2:\sigma_2, \dots, x_n:\sigma_n$のような
+\emph{型環境}を表す．
+%
+\begin{itemize}
+\item $\Gamma, M, \tau$が与えられたとき，$\Gamma\vdash M:\tau$を導けるか（型判定）
+\item $M$が与えられたとき，$\Gamma\vdash M:\tau$を導ける$\Gamma, \tau$があるか（型推論1）
+\item $\Gamma, M$が与えられたとき，$\Gamma\vdash M:\tau$を導ける$\tau$があるか（型推論2）
+\end{itemize}
+%
+これらの問題が決定可能であるかどうかは型システムに依存して決まるが，型判定よりも型推論の方が
+難しいことが多い．
+
+一般に型判定では，以下のような導出規則を用いることができる．
+%
+\begin{enumerate}
+\item 変数には自由に型をつけることができる．ただし，同じ変数には必ず同じ型がつく．
+\item 変数$x$に型$\sigma$がついたとき項$M$に型$\tau$がつくならば，$\fab*{x}{M}$には
+型$\sigma\to\tau$がつく．
+\item 項$M$に型$\sigma\to\tau$，$N$に型$\sigma$がつくとき，$MN$には型$\tau$がつく．
+\end{enumerate}
+%
+ここで，これらの規則はそれぞれ\figref{型判定規則}のような導出木に表すことができる．実際の
+型判定はこれらの導出木を組み合わせることによって行う．
+%
+\begin{figure}
+\centering
+\imgsource{typing1}
+\begin{minipage}{.4\textwidth}
+\centering
+\imgsource{typing2}
+\end{minipage}
+\begin{minipage}{.45\textwidth}
+\centering
+\imgsource{typing3}
+\end{minipage}
+\caption{型判定の3規則}
+\figlabel{型判定規則}
+\end{figure}
+%
+\begin{example}
+項$\fab*{xyz}{\fap{xz\fap{yz}}}$には$(T_0\to(T_1\to T_2))\to((T_0\to T_1)\to(T_0\to T_2))$
+という型がつく．
+%
+\begin{prooftree}
+\AxiomC{$x:(T_0\to(T_1\to T_2))$}
+\AxiomC{$z:T_0$}
+\BinaryInfC{$xz:T_1\to T_2$}
+\AxiomC{$y:T_0\to T_1$}
+\AxiomC{$z:T_0$}
+\BinaryInfC{$yz:T_1$}
+\BinaryInfC{$\fap{xz\fap{yz}}:T_2$}
+\UnaryInfC{$\fab*{z}{\fap{xz\fap{yz}}}:T_0\to T_2$}
+\UnaryInfC{$\fab*{yz}{\fap{xz\fap{yz}}}:(T_0\to T_1)\to(T_0\to T_2)$}
+\UnaryInfC{$\fab*{xyz}{\fap{xz\fap{yz}}}:(T_0\to(T_1\to T_2))\to((T_0\to T_1)\to(T_0\to T_2))$}
+\end{prooftree}
+\end{example}
+
+\NeedsRevision
+
+\section{型推論}
+
+\NeedsRevision
+
+
+
+\end{document}
