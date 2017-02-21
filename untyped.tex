@@ -6,12 +6,12 @@
 
 \begin{document}
 
-\chapter{ラムダ計算の基本}
+\chapter{ラムダ計算の定義}
 
 \begin{abstract}
 ラムダ計算とは，わずかな式変形規則によって「計算」という行為を抽象化したチューリング完全な
 計算モデルの1つで，関数型プログラミング言語のエッセンスとも言えるものである．本章では
-このラムダ計算の基本事項について概観する．
+このラムダ計算の基本的な概念を導入する．
 \end{abstract}
 
 \section{ラムダ記法}
@@ -294,11 +294,28 @@ $w\fap{uu}$はこれ以上ベータ簡約を行うことができない．この
 $M\breds N$で$N$が正規であるとき，$N$を$M$の\emph{ベータ正規形}という．
 \end{definition}
 
-\subsection{いくつかの有名なラムダ項}
+\subsection{イータ変換}
+
+等しい引数を与えたときに等しい結果を返す関数は「等しい関数」とみなすことができる．
+つまり，任意の$x$について$f(x)=g(x)$が成り立つとき，そしてそのときに限り$f=g$が成り立つ．
+この性質は\emph{外延性の原理}と呼ばれており，これに対応するラムダ計算上の概念に
+イータ変換がある．
+
+\begin{definition}[イータ簡約]
+$M$を自由変数$x$を含まないラムダ項とすると，$\fab*{x}{Mx} \bred M$が常に成り立つ．
+そこで，ラムダ項$P$の部分項$\fab*{x}{Mx}$を$M$に置き換えたラムダ項$P'$を作る操作を
+\emph{イータ簡約}といい，$P\ered P'$のように書く．
+\end{definition}
+%
+イータ簡約とは逆に$M$を$\fab*{x}{Mx}$に置き換えたラムダ項を作る操作は\emph{イータ展開}と
+呼ばれ，これらの操作を合わせて\emph{イータ変換}と呼ぶ．ラムダ項$P, Q$が有限回のイータ変換に
+より互いに到達できる場合，これらは\emph{イータ同値である}といい，$P\eequiv Q$のように表す．
+
+\section{いくつかの有名なラムダ項}
 
 ここでは，いくつかの有名なラムダ項を用いてラムダ計算体系についての理解を深めることにする．
 
-\subsubsection{SKIコンビネータ}
+\subsection{SKIコンビネータ}
 
 まずはじめに，以下に示す3つの比較的単純な形をしたラムダ項について考える：
 %
@@ -387,7 +404,7 @@ $\skl{S} = KS = \fab{xy}{x}\fab{xyz}{xz\fap{yz}} \breds
 $X\breds M$なるSK式$X$を得ることができる．よって題意は示された．\qed
 \end{proof}
 
-\subsubsection{無限のベータ簡約列}
+\subsection{無限のベータ簡約列}
 
 次に，ラムダ項
 %
@@ -403,7 +420,7 @@ $X\breds M$なるSK式$X$を得ることができる．よって題意は示さ�
 であり，\linebreak ラムダ項$\Omega$には正規形が存在しないことがわかる．このように，正規形を
 もたない関数の計算は永久に停止せず，したがってその関数の値は定義することができない．
 
-\subsubsection{不動点演算子}
+\subsection{不動点演算子}
 
 $X\breds MX$を満たす$X$を$M$の\emph{不動点}というが，任意のラムダ項に対してこの
 ような不動点を作り出す特殊なラムダ項（不動点演算子）がいくつか知られている
@@ -433,143 +450,5 @@ YF\breds F\fap{YF},\eqsep Y'F\breds F\fap{Y'F}
 
 以降，本書では$I,S,K,\Omega,Y,Y'$を断りなく式\eqref{ラムダ項IKS, ラムダ項Omega, 不動点演算子}
 で定義した意味で用いることにする．
-
-\subsection{イータ変換}
-
-等しい引数を与えたときに等しい結果を返す関数は「等しい関数」とみなすことができる．
-つまり，任意の$x$について$f(x)=g(x)$が成り立つとき，そしてそのときに限り$f=g$が成り立つ．
-この性質は\emph{外延性の原理}と呼ばれており，これに対応するラムダ計算上の概念に
-イータ変換がある．
-
-\begin{definition}[イータ簡約]
-$M$を自由変数$x$を含まないラムダ項とすると，$\fab*{x}{Mx} \bred M$が常に成り立つ．
-そこで，ラムダ項$P$の部分項$\fab*{x}{Mx}$を$M$に置き換えたラムダ項$P'$を作る操作を
-\emph{イータ簡約}といい，$P\ered P'$のように書く．
-\end{definition}
-%
-イータ簡約とは逆に$M$を$\fab*{x}{Mx}$に置き換えたラムダ項を作る操作は\emph{イータ展開}と
-呼ばれ，これらの操作を合わせて\emph{イータ変換}と呼ぶ．ラムダ項$P, Q$が有限回のイータ変換に
-より互いに到達できる場合，これらは\emph{イータ同値である}といい，$P\eequiv Q$のように表す．
-
-\section{チャーチ・ロッサーの定理と正規化定理}
-
-\subsection{チャーチ・ロッサーの定理}
-
-ラムダ項$M$の中に複数のベータ基が含まれている場合，そのいずれに注目するかによって何通りかの
-ベータ簡約を行える可能性がある．例えば，$\fab{x}{xx}\fap{\fab{y}{y}z}$は
-%
-\begin{align}
-\fab{x}{xx}\underline{\fap{\fab{y}{y}z}} &\bred \fab{x}{xx}z = M_1 \eqlabel{M1} \\
-\underline{\fab{x}{xx}\fap{\fab{y}{y}z}} &\bred \fap{\fab{y}{y}z}\fap{\fab{y}{y}z} = M_2
-\eqlabel{M2}
-\end{align}
-%
-の2通りに簡約できる．上記2式では，左辺の注目したベータ基に下線を引いている．ここでベータ簡約
-の結果にまたいくつかのベータ基がある場合，そのうちのいずれか1つを選んで簡約するということを
-次々に続けていくと，1つのラムダ項から幾通りもの変換列ができる場合がある．
-%その際
-%\[
-%\fab{x}{a}\Omega \bred \fab{x}{a}\Omega \bred \fab{x}{a}\Omega \bred \cdots
-%\]
-%のようにベータ簡約が新しいベータ基を生み，それをベータ簡約すると再び新しいベータ基が
-%生まれるという状況がいつまでも続く場合が考えられ，ベータ変換列は必ずしも有限で終わる
-%とは限らない．
-
-そこで，このように1つのラムダ項から始まる様々な変換列がいずれ1つのラムダ項に
-収束するのか，あるいは互いに無関係なラムダ項へと発散していくのか，つまり計算の順序は
-計算結果に違いを与えるのか否かという疑問が生じる．本節で導くことになるチャーチ・ロッサーの
-定理は，この問題に対して「計算の順序は計算結果に影響を与えない」という肯定的解答を与える
-ものである．
-
-まず，一般のラムダ項に関する二項関係$\tox$について合流性という概念を導入する．なお，$\tox$を
-有限回繰り返して到達できることを$\toxs$と書く．
-%
-\begin{definition}[合流性]
-任意のラムダ項$M,P,Q$について
-\[
-M \tox P \land M \tox Q \then \exists N.(P \tox N \land Q \tox N)
-\]
-が成り立つとき，二項関係$\tox$は\emph{1ステップ合流性}をもつ
-という．また
-\[
-M \toxs P \land M \toxs Q \then \exists N.(P \toxs N \land Q \toxs N)
-\]
-が成り立つとき，二項関係$\tox$は\emph{複数ステップ合流性}をもつという．
-\end{definition}
-%
-\begin{lemma}\thlabel{合流性}
-二項関係$\tox$が1ステップ合流性をもつならば，$\tox$は複数ステップ合流性をもつ．
-\end{lemma}
-%
-\begin{proof}
-二項関係$\tox$が1ステップ合流性をもつとき，その合流状況を$M\toxs P, M\toxs Q$の変換列をもとに
-\figref{合流状況}のように格子状に表現することができる．したがって$P \toxs N, Q \toxs N$
-を満たす$N$が存在し，$\tox$は複数ステップ合流性をもつ．\qed
-\end{proof}
-%
-\begin{figure}[b]
-\centering
-\imgsource{confluence}
-\caption{1ステップ合流性が成り立つ場合の合流状況}
-\figlabel{合流状況}
-\end{figure}
-
-補題\thref{合流性}の逆は成り立たない．実際，本節冒頭で示した式\eqref{M1, M2}について
-$M_i\bred N\;(i=1,2)$なるラムダ項$N$は存在しない．この事実はベータ簡約の複数ステップ
-合流性を主張するチャーチ・ロッサーの定理の証明を難しくする．そのためチャーチ・ロッサーの定理
-を示すにはいくつか新しいアイデアが必要となる．
-%
-\begin{enumerate}
-\item ラムダ項間に新たな二項関係$\pred$を導入する．
-\item $\pred$と$\bred$は複数ステップでは同等になることを示す．
-%\[
-%M \preds N \iff M \breds N
-%\]
-\item $\pred$の1ステップ合流性を示す．
-\end{enumerate}
-%
-ここで，二項関係$\pred$はあるラムダ項中に存在するすべてのベータ基を1回の操作で同時に
-簡約してしまうというベータ簡約の拡張概念であり，形式的には次のように定義される．
-%
-\begin{definition}[並行簡約]
-以下を満たすラムダ項間の二項関係$\pred$を\emph{並行簡約}という．
-%
-\begin{enumerate}
-\item $a$が変数のとき$a\pred a$である．
-\item $A\pred B$かつ$C\pred D$ならば$AC\pred BD$である．
-\item $A\pred B$かつ$C\pred D$ならば$\fab{a}{A}C\pred B[D/a]$である．
-\item $A\pred B$ならば$\fab*{a}{A}\pred$である．
-%\item 以上に該当しなければ$M\pred N$ではない．
-\end{enumerate}
-\end{definition}
-%
-ここで上記定義内の規則は，\figref{並行簡約}に示す4つの推論規則として記述することもできる．
-%
-\begin{figure}
-\centering
-\begin{minipage}{.35\textwidth}
-\centering
-\imgsource{parallel1}
-\end{minipage}
-\begin{minipage}{.35\textwidth}
-\centering
-\imgsource{parallel2}
-\end{minipage}
-%
-\\
-%
-\begin{minipage}{.35\textwidth}
-\centering
-\imgsource{parallel3}
-\end{minipage}
-\begin{minipage}{.35\textwidth}
-\centering
-\imgsource{parallel4}
-\end{minipage}
-\caption{並行簡約の規則}
-\figlabel{並行簡約}
-\end{figure}
-
-\NeedsRevision
 
 \end{document}
